@@ -1,0 +1,11 @@
+Docker volumes provide persistent storage for containers.
+
+A Docker container's writable layer is deleted when the container is removed.
+
+Docker volumes exist outside the container lifecycle. This means data stored in a volume can survive even when the container is deleted.
+
+You can create a named volume using the docker volume create command.
+
+You can mount a volume when starting a container using the -v option.
+
+Docker Compose can also define named volumes in the compose.yaml file.
