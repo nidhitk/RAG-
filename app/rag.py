@@ -40,13 +40,21 @@ class RAGPipeline:
 
             if result.score >= 0.80:
 
-                relevant_chunks.append(
-                    result.payload["text"]
-                )
+                relevant_chunks.append({
+                    # result.payload["text"]
+                    "text":result.payload["text"],
+                    "source":result.payload.get("source"),
+                    "page":result.payload.get("page"),
+                    "chunk_index":result.payload.get("chunk_index"),
+                    "score":result.score
+
+
+                })
 
         # 4. Build context
         context = "\n\n".join(
-            relevant_chunks
+            chunk["text"]
+            for chunk in relevant_chunks
         )
 
         # 5. Build prompt
@@ -60,4 +68,14 @@ class RAGPipeline:
             prompt
         )
 
-        return answer
+        return {
+            "answer":answer,
+            "sources":[
+                {
+                    "source":chunk["source"],
+                    "page":chunk["page"],
+                    "score":chunk["score"]
+                }
+                for chunk in relevant_chunks
+            ]
+        }

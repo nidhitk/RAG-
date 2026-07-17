@@ -30,10 +30,8 @@ def ask_question(
     request: QuestionRequest
 ):
 
-    answer = rag.ask(
+    result = rag.ask(
         request.question
     )
 
-    return {
-        "answer": answer
-    }
+    return result
