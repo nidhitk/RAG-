@@ -28,12 +28,12 @@ class QdrantStore:
             )
         )
 
-    def insert_chunks(self, chunks, embeddings):
+    def insert_chunks(self, chunks, embeddings,metadata):
 
         points = []
 
-        for index, (chunk, embedding) in enumerate(
-            zip(chunks, embeddings)
+        for index, (chunk, embedding,chunk_metadata) in enumerate(
+            zip(chunks, embeddings,metadata)
         ):
 
             point = PointStruct(
@@ -42,7 +42,8 @@ class QdrantStore:
                 vector=embedding,
 
                 payload={
-                    "text": chunk
+                    "text": chunk,
+                    **chunk_metadata
                 }
             )
 
