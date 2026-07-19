@@ -3,10 +3,14 @@ from app.qdrant_store import QdrantStore
 from app.prompt import build_prompt
 from app.llm import LLMService
 from app.reranker import Reranker
+from app.query_rewriter import QueryRewriter
 
 class RAGPipeline:
 
     def __init__(self, api_key):
+        self.query_rewriter = QueryRewriter(
+            api_key=api_key
+        )
 
         self.embedding_service = (
             EmbeddingService()
@@ -21,10 +25,15 @@ class RAGPipeline:
 
     def ask(self, question: str):
 
+        search_query = self.query_rewriter.rewrite(
+             question
+        )
+        print("query",search_query)
+
         # 1. Convert question to embedding
         query_embedding = (
             self.embedding_service.embed(
-                question
+                search_query
             )
         )
 
@@ -77,6 +86,7 @@ class RAGPipeline:
 
         return {
             "answer":answer,
+            "question asked":question,
             "sources":[
                 {
                     "source":chunk["source"],

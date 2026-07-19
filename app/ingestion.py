@@ -18,8 +18,8 @@ def ingest_document(file_path: str):
 
         chunks = chunk_text(
             text=page["text"],
-            chunk_size=50,
-            overlap=10
+            chunk_size=500,
+            overlap=50
         )
         for chunk_index, chunk in enumerate(chunks):
 
