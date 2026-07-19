@@ -2,7 +2,7 @@ from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.prompt import build_prompt
 from app.llm import LLMService
-
+from app.reranker import Reranker
 
 class RAGPipeline:
 
@@ -11,6 +11,7 @@ class RAGPipeline:
         self.embedding_service = (
             EmbeddingService()
         )
+        self.reranker = Reranker()
 
         self.qdrant_store = QdrantStore()
 
@@ -30,17 +31,16 @@ class RAGPipeline:
         # 2. Search Qdrant
         results = self.qdrant_store.search(
             query_embedding=query_embedding,
-            limit=5
+            limit=20
         )
 
         # 3. Filter low-relevance results
-        relevant_chunks = []
+        # relevant_chunks = []
+        candidate_chunks = []
 
         for result in results:
-
-            if result.score >= 0.80:
-
-                relevant_chunks.append({
+            
+            candidate_chunks.append({
                     # result.payload["text"]
                     "text":result.payload["text"],
                     "source":result.payload.get("source"),
@@ -50,6 +50,13 @@ class RAGPipeline:
 
 
                 })
+            
+        relevant_chunks = self.reranker.rerank(
+        question=question,
+        chunks=candidate_chunks,
+        top_k=3
+        )
+
 
         # 4. Build context
         context = "\n\n".join(
@@ -74,7 +81,8 @@ class RAGPipeline:
                 {
                     "source":chunk["source"],
                     "page":chunk["page"],
-                    "score":chunk["score"]
+                    "score":chunk["score"],
+                    "data":chunk["text"]
                 }
                 for chunk in relevant_chunks
             ]
