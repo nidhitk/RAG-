@@ -5,3 +5,4 @@ qdrant-client
 python-dotenv
 groq
 pypdf
+langchain-text-splitters
