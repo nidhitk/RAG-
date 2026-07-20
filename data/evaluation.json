@@ -1,0 +1,12 @@
+[
+  {
+    "question": "What are Docker volumes?",
+    "expected_answer": "Docker volumes provide persistent storage for container data.",
+    "expected_source": "sample.pdf"
+  },
+  {
+    "question": "How do Docker volumes preserve data?",
+    "expected_answer": "They store data outside the container lifecycle.",
+    "expected_source": "sample.pdf"
+  }
+]
