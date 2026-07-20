@@ -5,11 +5,13 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
+
 def evaluate():
 
     with open(
         "data/evaluation.json",
-        "r"
+        "r",
+        encoding="utf-8"
     ) as file:
 
         test_cases = json.load(file)
@@ -18,28 +20,60 @@ def evaluate():
         api_key=os.environ.get("GROQ_API_KEY")
     )
 
+    hits = 0
+
     for test_case in test_cases:
 
         result = rag.ask(
             question=test_case["question"]
         )
 
+        sources = result["sources"]
+
+        expected_source = (
+            test_case["expected_source"]
+        )
+
+        expected_page = (
+            test_case["expected_page"]
+        )
+
+        found = False
+        # checks source example sample.pdf and page number of that source
+        for source in sources:
+
+            if (
+                source["source"]
+                == expected_source
+                and
+                source["page"]
+                == expected_page
+            ):
+
+                found = True
+                break
+
+        if found:
+
+            hits += 1
+
+            print("✅ HIT")
+
+        else:
+
+            print("❌ MISS")
+
         print(
-            "Question:",
             test_case["question"]
         )
 
-        print(
-            "Expected:",
-            test_case["expected_answer"]
-        )
+    hit_rate = (
+        hits / len(test_cases)
+    )
 
-        print(
-            "Actual:",
-            result["answer"]
-        )
-
-        print("-" * 50)
+    print(
+        f"Hit Rate: {hit_rate:.2%}"
+    )
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ class RAGPipeline:
              question=question,
              history=history
         )
-        print("query",search_query)
+        # print("query",search_query)
 
         # 1. Convert question to embedding
         query_embedding = (
@@ -109,8 +109,8 @@ class RAGPipeline:
         top_k=3
         )
 
-        print("vectors :",candidate_chunks)
-        print("keyword search :",keyword_results)
+        # print("vectors :",candidate_chunks)
+        # print("keyword search :",keyword_results)
 
 
         # 4. Build context
