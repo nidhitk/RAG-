@@ -18,6 +18,7 @@ app = FastAPI(
 class QuestionRequest(BaseModel):
 
     question: str
+    history: list = []
 
 
 rag = RAGPipeline(
@@ -31,7 +32,8 @@ def ask_question(
 ):
 
     result = rag.ask(
-        request.question
+        question=request.question,
+        history=request.history
     )
 
     return result

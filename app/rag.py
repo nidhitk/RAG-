@@ -23,10 +23,11 @@ class RAGPipeline:
             api_key=api_key
         )
 
-    def ask(self, question: str):
+    def ask(self, question: str,history: list = []):
 
         search_query = self.query_rewriter.rewrite(
-             question
+             question=question,
+             history=history
         )
         print("query",search_query)
 

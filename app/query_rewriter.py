@@ -9,19 +9,43 @@ class QueryRewriter:
             api_key=api_key
         )
 
-    def rewrite(self, question: str):
+    def rewrite(self, question: str,history: list):
+        conversation = ""
+
+        for message in history:
+
+                conversation += (
+                    f"{message['role']}: "
+                    f"{message['content']}\n"
+                )
 
         prompt = f"""
-Rewrite the following user question
-into a clear, standalone search query.
+        Rewrite the user's latest question
+        as a standalone search query.
 
-Do not answer the question.
+        Use the conversation history to resolve
+        pronouns and references.
 
-Original question:
-{question}
+        Conversation history:
+        {conversation}
 
-Rewritten search query:
-"""
+        Latest question:
+        {question}
+
+        Return only the rewritten search query.
+        """
+
+#         prompt = f"""
+# Rewrite the following user question
+# into a clear, standalone search query.
+
+# Do not answer the question.
+
+# Original question:
+# {question}
+
+# Rewritten search query:
+# """
 
         response = (
             self.client.chat.completions.create(
