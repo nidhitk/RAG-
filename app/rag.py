@@ -4,6 +4,8 @@ from app.prompt import build_prompt
 from app.llm import LLMService
 from app.reranker import Reranker
 from app.query_rewriter import QueryRewriter
+from app.bm25_search import BM25Search
+import json
 
 class RAGPipeline:
 
@@ -22,6 +24,18 @@ class RAGPipeline:
         self.llm = LLMService(
             api_key=api_key
         )
+        with open(
+            "data/chunks.json",
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            chunks = json.load(file)
+
+        self.bm25 = BM25Search(chunks)
+
+
+
 
     def ask(self, question: str,history: list = []):
 
@@ -44,6 +58,11 @@ class RAGPipeline:
             limit=20
         )
 
+        keyword_results = self.bm25.search(
+        query=search_query,
+        top_k=20
+        )
+
         # 3. Filter low-relevance results
         # relevant_chunks = []
         candidate_chunks = []
@@ -56,16 +75,42 @@ class RAGPipeline:
                     "source":result.payload.get("source"),
                     "page":result.payload.get("page"),
                     "chunk_index":result.payload.get("chunk_index"),
-                    "score":result.score
+                    "vector_score":result.score
 
 
                 })
             
+
+        combined_results = (
+        candidate_chunks
+        + keyword_results
+        )    
+
+
+        unique_results = {}
+        for chunk in combined_results:
+
+            key = (
+                chunk["source"],
+                chunk["page"],
+                chunk["chunk_index"]
+            )
+
+            unique_results[key] = chunk
+
+        combined_results = list(
+            unique_results.values()
+        )
+
+            
         relevant_chunks = self.reranker.rerank(
         question=question,
-        chunks=candidate_chunks,
+        chunks=combined_results,
         top_k=3
         )
+
+        print("vectors :",candidate_chunks)
+        print("keyword search :",keyword_results)
 
 
         # 4. Build context
@@ -92,7 +137,9 @@ class RAGPipeline:
                 {
                     "source":chunk["source"],
                     "page":chunk["page"],
-                    "score":chunk["score"],
+                    "vector_score": chunk.get("vector_score"),
+                    "keyword_score": chunk.get("keyword_score"),
+                    "rerank_score": chunk.get("rerank_score"),
                     "data":chunk["text"]
                 }
                 for chunk in relevant_chunks

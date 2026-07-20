@@ -4,7 +4,7 @@ from app.chunking import chunk_text
 from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.pdf_loader import load_pdf
-
+import json
 
 def ingest_document(file_path: str):
 
@@ -31,6 +31,34 @@ def ingest_document(file_path: str):
                     "chunk_index":chunk_index
                 }
             )
+
+
+
+    chunk_records = []
+
+    for chunk, metadata in zip(
+        all_chunks,
+        all_metadata
+    ):
+
+        chunk_records.append({
+            "text": chunk,
+            **metadata
+        })     
+
+    with open(
+        "data/chunks.json",
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            chunk_records,
+            file,
+            ensure_ascii=False,
+            indent=2
+        )    
+
 
     embedding_service = EmbeddingService()
 

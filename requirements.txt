@@ -6,3 +6,4 @@ python-dotenv
 groq
 pypdf
 langchain-text-splitters
+rank-bm25

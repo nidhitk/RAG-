@@ -1,0 +1,128 @@
+[
+  {
+    "text": "Docker — Complete Theory Guide\nA theory-only guide to understanding Docker and its core concepts.\n1. What Is Docker?\nDocker is a platform used to package, distribute, and run applications in isolated environments called\ncontainers. A container contains the application and the software dependencies required to run it. This\nmakes the application environment more consistent across different computers and servers.\n2. Why Was Docker Created?",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 0
+  },
+  {
+    "text": "2. Why Was Docker Created?\nBefore containers became popular, developers often faced the problem that an application worked on one\ncomputer but failed on another. Differences in operating systems, programming language versions,\nlibraries, and configurations could cause these problems. Docker helps create a consistent environment so\nthat an application behaves more predictably across development, testing, and production.\n3. Virtual Machines vs Containers",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 1
+  },
+  {
+    "text": "3. Virtual Machines vs Containers\nA virtual machine emulates an entire computer and includes a complete guest operating system.\nContainers do not normally include a complete operating system. Instead, they share the host operating\nsystem kernel while keeping applications and their environments isolated. Because containers share the\nkernel, they are generally lighter and faster to start than virtual machines.\n4. Docker Architecture",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 2
+  },
+  {
+    "text": "4. Docker Architecture\nDocker uses a client-server architecture. The Docker client is the interface through which users or tools\ncommunicate with Docker. The Docker daemon is the background service responsible for building images,\ncreating containers, managing networks, and managing storage. The client sends requests to the daemon,\nand the daemon performs the required operations.\n5. Docker Engine\nDocker Engine is the core technology that allows Docker containers to be created and managed. It",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 3
+  },
+  {
+    "text": "includes the Docker daemon, the Docker API, and the Docker command-line client. The engine is\nresponsible for managing the lifecycle of containers and the resources they use.\n6. Docker Images\nA Docker image is a read-only template used to create containers. It contains the application code,\nrequired libraries, dependencies, configuration files, and other components needed by the application. An",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 4
+  },
+  {
+    "text": "image is not itself a running application. It becomes a running environment when a container is created\nfrom it.\n7. Docker Containers",
+    "source": "sample.pdf",
+    "page": 1,
+    "chunk_index": 5
+  },
+  {
+    "text": "A container is a running instance of a Docker image. Containers provide process-level isolation, meaning\nthat applications inside one container are separated from applications in other containers. Containers are\ndesigned to be lightweight and portable. Multiple containers can be created from the same image.\n8. Image and Container Relationship\nAn image can be considered a blueprint, while a container is a running instance created from that",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 0
+  },
+  {
+    "text": "blueprint. One image can be used to create many containers. Each container has its own runtime state\neven though the containers may have been created from the same image.\n9. Dockerfile\nA Dockerfile is a definition of how a Docker image should be created. It describes the base environment,\napplication files, dependencies, configuration, and the process that should start when a container runs.\nThe Dockerfile makes the image-building process repeatable and reproducible.\n10. Docker Image Layers",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 1
+  },
+  {
+    "text": "10. Docker Image Layers\nDocker images are constructed from layers. Each change in the image-building process can create a new\nlayer. Layers can be reused between images, which helps reduce storage requirements and can make\nimage creation more efficient. The final image is formed by combining these layers.\n11. Container Lifecycle\nA container has a lifecycle. It is created from an image, started to execute its main process, may continue",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 2
+  },
+  {
+    "text": "running while that process is active, and can eventually be stopped or removed. A stopped container may\nstill exist as an object until it is explicitly removed.\n12. Container Isolation\nContainers isolate processes, filesystems, networks, and other resources. This isolation allows multiple\napplications to run on the same host without directly interfering with one another. Container isolation is an\nimportant foundation for microservices and modern application deployment.\n13. Port Mapping",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 3
+  },
+  {
+    "text": "13. Port Mapping\nApplications running inside containers may listen on ports that are isolated from the host machine. Port\nmapping creates a connection between a port on the host and a port inside the container. This allows\nexternal clients to communicate with an application running inside a container.\n14. Docker Volumes\nContainers are often treated as temporary environments. Data stored only inside a container can",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 4
+  },
+  {
+    "text": "disappear when the container is removed. Docker volumes provide persistent storage that exists\nindependently of a container's lifecycle. Volumes are especially important for databases and other stateful\napplications.",
+    "source": "sample.pdf",
+    "page": 2,
+    "chunk_index": 5
+  },
+  {
+    "text": "15. Docker Bind Mounts\nA bind mount connects a directory or file on the host machine to a location inside a container. This allows\nthe container to access host files directly. Bind mounts are commonly useful during development because\nchanges made on the host can be reflected inside the container.\n16. Docker Networking\nDocker networking allows containers to communicate with each other and with external systems.",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 0
+  },
+  {
+    "text": "Containers can be connected to virtual networks. When multiple services belong to the same Docker\nnetwork, they can communicate through that network using their service or container identities rather than\nrelying only on the host machine.\n17. Docker Compose\nDocker Compose is a tool for defining and managing applications composed of multiple services. A typical\nbackend system may contain an API service, a database, a cache, and message-processing services.",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 1
+  },
+  {
+    "text": "Compose allows the relationships between these services to be described as one application environment.\n18. Docker Registries\nA Docker registry is a storage and distribution system for Docker images. Developers and organizations\ncan push images to a registry and later pull those images onto other machines or servers. Registries may\nbe public or private.\n19. Docker Hub\nDocker Hub is a public registry containing many commonly used images. It also allows users and",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 2
+  },
+  {
+    "text": "organizations to store and distribute their own images. Private registries can be used when images should\nnot be publicly accessible.\n20. Docker and Microservices\nDocker is commonly used with microservices because each service can run in its own container. Each\ncontainer can have its own dependencies and can be developed, deployed, scaled, and updated\nindependently. This makes containers a useful technology for distributed applications.\n21. Docker in Development",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 3
+  },
+  {
+    "text": "21. Docker in Development\nIn development, Docker helps ensure that developers use consistent versions of databases, caches,\nmessage brokers, and application runtimes. This reduces differences between developer machines and\nmakes it easier to reproduce environments.\n22. Docker in Production\nIn production, containers provide a standardized unit for deploying applications. A built image can be\ntested and then deployed to servers or cloud platforms. Container platforms can manage container",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 4
+  },
+  {
+    "text": "placement, scaling, networking, and availability.",
+    "source": "sample.pdf",
+    "page": 3,
+    "chunk_index": 5
+  },
+  {
+    "text": "23. Docker Security\nDocker security involves controlling what containers can access and what privileges they have. Important\nconcepts include limiting container privileges, protecting secrets, using trusted images, minimizing\nunnecessary software, and keeping the Docker environment updated.\n24. Docker vs Kubernetes\nDocker is primarily a technology for building and running containers. Kubernetes is a container",
+    "source": "sample.pdf",
+    "page": 4,
+    "chunk_index": 0
+  },
+  {
+    "text": "orchestration platform that manages containers across systems. Kubernetes can handle tasks such as\nscheduling, scaling, service discovery, and maintaining the desired state of applications. Docker and\nKubernetes are related but serve different purposes.\n25. The Big Picture\nThe general Docker flow is conceptually simple: application source code and dependencies are packaged\ninto an image; a container is created from the image; the container runs the application in an isolated",
+    "source": "sample.pdf",
+    "page": 4,
+    "chunk_index": 1
+  },
+  {
+    "text": "environment; persistent data is stored separately when necessary; and multiple containers can\ncommunicate through networks and work together as a complete application.",
+    "source": "sample.pdf",
+    "page": 4,
+    "chunk_index": 2
+  }
+]
