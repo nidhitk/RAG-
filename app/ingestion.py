@@ -85,7 +85,7 @@ def main():
 
     ingest_document(
         "documents/sample.pdf"
-    )
+    ) 
 
 
 if __name__ == "__main__":

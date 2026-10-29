@@ -1,5 +1,5 @@
 from groq import Groq
-
+import os
 
 class QueryRewriter:
 
@@ -49,7 +49,7 @@ class QueryRewriter:
 
         response = (
             self.client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=os.environ.get("model_for_query"),
 
                 messages=[
                     {

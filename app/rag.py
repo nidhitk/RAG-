@@ -133,6 +133,7 @@ class RAGPipeline:
         return {
             "answer":answer,
             "question asked":question,
+            "context":[chunk["text"] for chunk in relevant_chunks],
             "sources":[
                 {
                     "source":chunk["source"],
