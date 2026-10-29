@@ -1,0 +1,15 @@
+[
+  {
+    "question": "What is Docker?",
+    "ground_truth": "Docker is a platform used to package, distribute, and run applications in isolated environments called containers."
+  },
+  {
+    "question": "Why was Docker created?",
+    "ground_truth": "Docker was created to solve the problem where an application worked on one computer but failed on another due to differences in operating systems, programming language versions, libraries, and configurations, helping create a consistent environment."
+  },
+  {
+    "question": "How do virtual machines and containers differ regarding operating systems?",
+    "ground_truth": "A virtual machine emulates an entire computer and includes a complete guest operating system, whereas containers do not normally include a complete operating system and instead share the host operating system kernel."
+  }
+
+]

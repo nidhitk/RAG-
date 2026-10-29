@@ -7,3 +7,11 @@ groq
 pypdf
 langchain-text-splitters
 rank-bm25
+
+# RAG evaluation
+ragas
+datasets
+pandas
+langchain-groq
+langchain-huggingface
+langchain-community
