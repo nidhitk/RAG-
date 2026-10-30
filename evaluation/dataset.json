@@ -10,6 +10,73 @@
   {
     "question": "How do virtual machines and containers differ regarding operating systems?",
     "ground_truth": "A virtual machine emulates an entire computer and includes a complete guest operating system, whereas containers do not normally include a complete operating system and instead share the host operating system kernel."
+  },
+  {
+    "question": "What is the architecture used by Docker?",
+    "ground_truth": "Docker uses a client-server architecture consisting of a Docker client and a Docker daemon."
+  },
+  {
+    "question": "What components are included in Docker Engine?",
+    "ground_truth": "Docker Engine includes the Docker daemon, the Docker API, and the Docker command-line client."
+  },
+  {
+    "question": "What is a Docker image?",
+    "ground_truth": "A Docker image is a read-only template used to create containers, containing application code, required libraries, dependencies, configuration files, and other components."
+  },
+  {
+    "question": "What is a Docker container?",
+    "ground_truth": "A container is a running instance of a Docker image that provides process-level isolation, lightweight execution, and portability."
+  },
+  {
+    "question": "How can the relationship between an image and a container be described?",
+    "ground_truth": "An image can be considered a blueprint, while a container is a running instance created from that blueprint, where one image can be used to create many containers."
+  },
+  {
+    "question": "What is a Dockerfile used for?",
+    "ground_truth": "A Dockerfile is a definition of how a Docker image should be created, describing the base environment, application files, dependencies, configuration, and the process that should start when a container runs."
+  },
+  {
+    "question": "How are Docker images constructed?",
+    "ground_truth": "Docker images are constructed from layers, where each change in the image-building process can create a new layer, and layers can be reused between images."
+  },
+  {
+    "question": "What stages make up a container's lifecycle?",
+    "ground_truth": "A container is created from an image, started to execute its main process, continues running while that process is active, and can eventually be stopped or removed."
+  },
+  {
+    "question": "What does container isolation protect?",
+    "ground_truth": "Containers isolate processes, filesystems, networks, and other resources to allow multiple applications to run on the same host without directly interfering with one another."
+  },
+  {
+    "question": "What is the purpose of port mapping?",
+    "ground_truth": "Port mapping creates a connection between a port on the host machine and a port inside the container to allow external clients to communicate with an application running inside a container."
+  },
+  {
+    "question": "Why are Docker volumes important?",
+    "ground_truth": "Docker volumes provide persistent storage that exists independently of a container's lifecycle, which is especially important for databases and other stateful applications."
+  },
+  {
+    "question": "What is a Docker bind mount?",
+    "ground_truth": "A bind mount connects a directory or file on the host machine to a location inside a container, allowing the container to access host files directly."
+  },
+  {
+    "question": "How does Docker networking allow services to communicate?",
+    "ground_truth": "Docker networking allows containers to connect to virtual networks so they can communicate with each other using their service or container identities rather than relying only on the host machine."
+  },
+  {
+    "question": "What is Docker Compose used for?",
+    "ground_truth": "Docker Compose is a tool for defining and managing applications composed of multiple services, allowing relationships between services to be described as one application environment."
+  },
+  {
+    "question": "What is a Docker registry?",
+    "ground_truth": "A Docker registry is a storage and distribution system for Docker images where developers can push and pull images."
+  },
+  {
+    "question": "What is Docker Hub?",
+    "ground_truth": "Docker Hub is a public registry containing many commonly used images and allowing users and organizations to store and distribute their own images."
+  },
+  {
+    "question": "How do Docker and Kubernetes differ in purpose?",
+    "ground_truth": "Docker is primarily a technology for building and running containers, whereas Kubernetes is a container orchestration platform that manages containers across systems (handling scheduling, scaling, and service discovery)."
   }
-
 ]
