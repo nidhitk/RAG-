@@ -1,8 +1,11 @@
 from pypdf import PdfReader
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def load_pdf(file_path: str):
-
+    logger.info("Loading PDF: %s", file_path)
     reader = PdfReader(file_path)
 
     pages = []
@@ -22,4 +25,5 @@ def load_pdf(file_path: str):
                 }
             )
 
+    logger.info("Extracted text from %d PDF pages", len(pages))
     return pages

@@ -1,10 +1,13 @@
 from sentence_transformers import CrossEncoder
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class Reranker:
 
     def __init__(self):
-
+        logger.info("Loading reranker model")
         self.model = CrossEncoder(
             "cross-encoder/ms-marco-MiniLM-L-6-v2"
         )
@@ -15,7 +18,7 @@ class Reranker:
         chunks: list,
         top_k: int = 3
     ):
-
+        logger.info("Reranking %d chunks; selecting top %d", len(chunks), top_k)
         pairs = []
 
         for chunk in chunks:
@@ -49,4 +52,6 @@ class Reranker:
             reverse=True
         )
 
-        return scored_chunks[:top_k]
+        results = scored_chunks[:top_k]
+        logger.info("Reranker returned %d chunks", len(results))
+        return results

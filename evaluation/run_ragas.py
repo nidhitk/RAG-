@@ -8,6 +8,8 @@ import pandas as pd
 from datasets import Dataset
 from dotenv import load_dotenv
 
+from evaluation.ollama_llm import evaluator_llm
+
 # RAGAS 0.4.3 imports the retired LangChain Community Vertex AI module even
 # when Vertex AI is not used.  RAGAS only references this class when checking
 # whether an evaluator is a Vertex model; this evaluation uses ChatGroq.
@@ -37,10 +39,12 @@ from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from app.rag import RAGPipeline
+from app.logging_config import get_logger
 
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
+logger = get_logger(__name__)
 
 
 def load_test_cases():
@@ -68,10 +72,7 @@ def build_dataset(pipeline, test_cases):
         contexts.append(result["context"])
         ground_truths.append(expected_answer)
 
-        print(f"Evaluated question: {question}")
-        print(f"Answer: {result['answer'][:200]}")
-        print(f"Retrieved chunks: {len(result['context'])}")
-        print("-" * 60)
+        logger.info("Evaluated question; retrieved %d chunks", len(result["context"]))
 
     return Dataset.from_dict({
         "question": questions,
@@ -87,6 +88,7 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
+    logger.info("Starting RAGAS evaluation")
     api_key = os.environ["GROQ_API_KEY"]
 
     pipeline = RAGPipeline(api_key=api_key)
@@ -95,18 +97,20 @@ def main():
     dataset = build_dataset(pipeline, test_cases)
 
     # Example evaluator: use a compatible Groq model.
-    evaluator_llm = ChatGroq(
-        model=os.getenv(
-            "ragas_evaluation_model",
-            "llama-3.3-70b-versatile",
-        ),
-        api_key=api_key,
-        temperature=0,
-    )
+
+    # evaluator_llm = ChatGroq(
+    #     model=os.getenv(
+    #         "ragas_evaluation_model",
+    #         "llama-3.3-70b-versatile",
+    #     ),
+    #     api_key=api_key,
+    #     temperature=0,
+    # )
+
     # Groq accepts a single completion per request.  RAGAS requests several
     # completions for answer relevancy, so issue separate single-completion
     # requests instead of sending Groq an unsupported ``n > 1`` parameter.
-    evaluator_llm = LangchainLLMWrapper(evaluator_llm, bypass_n=True)
+    ragas_evaluator = LangchainLLMWrapper(evaluator_llm, bypass_n=True)
     # Groq supports only one completion per request.  One generated question
     # keeps answer-relevancy evaluation compatible and avoids tripling runtime.
     answer_relevancy.strictness = 1
@@ -124,7 +128,7 @@ def main():
             context_precision,
             context_recall,
         ],
-        llm=evaluator_llm,
+        llm=ragas_evaluator,
         embeddings=evaluator_embeddings,
         # Keep Groq calls within its tokens-per-minute quota.  RAGAS retries
         # transient 429 responses using exponential backoff.
@@ -138,10 +142,8 @@ def main():
     output_path = output_dir / "ragas_results.csv"
     df.to_csv(output_path, index=False)
 
-    print("\nRAGAS evaluation completed.")
-    print(f"Results saved to: {output_path}")
-    print("\nScores:")
-    print(result)
+    logger.info("RAGAS evaluation completed; results saved to %s", output_path)
+    logger.info("RAGAS scores: %s", result)
 
 
 if __name__ == "__main__":

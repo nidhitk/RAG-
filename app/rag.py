@@ -1,18 +1,24 @@
 from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.prompt import build_prompt
-from app.llm import LLMService
+from app.llm import LLMService,Opensource_LLMService
 from app.reranker import Reranker
-from app.query_rewriter import QueryRewriter
+from app.query_rewriter import QueryRewriter,Opensource_QueryRewriter
 from app.bm25_search import BM25Search
 import json
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 class RAGPipeline:
 
     def __init__(self, api_key):
+        logger.info("Initializing RAG pipeline")
         self.query_rewriter = QueryRewriter(
             api_key=api_key
         )
+        self.query_rewriter=Opensource_QueryRewriter()
+
 
         self.embedding_service = (
             EmbeddingService()
@@ -21,9 +27,10 @@ class RAGPipeline:
 
         self.qdrant_store = QdrantStore()
 
-        self.llm = LLMService(
-            api_key=api_key
-        )
+        # self.llm = LLMService(
+        #     api_key=api_key
+        # )
+        self.llm=Opensource_LLMService()
         with open(
             "data/chunks.json",
             "r",
@@ -33,17 +40,18 @@ class RAGPipeline:
             chunks = json.load(file)
 
         self.bm25 = BM25Search(chunks)
+        logger.info("RAG pipeline initialized with %d indexed chunks", len(chunks))
 
 
 
 
     def ask(self, question: str,history: list = []):
-
+        logger.info("Processing question with %d history messages", len(history))
         search_query = self.query_rewriter.rewrite(
              question=question,
              history=history
         )
-        # print("query",search_query)
+        logger.debug("Query rewrite completed")
 
         # 1. Convert question to embedding
         query_embedding = (
@@ -101,6 +109,7 @@ class RAGPipeline:
         combined_results = list(
             unique_results.values()
         )
+        logger.info("Combined %d unique candidate chunks", len(combined_results))
 
             
         relevant_chunks = self.reranker.rerank(
@@ -130,7 +139,7 @@ class RAGPipeline:
             prompt
         )
 
-        return {
+        response = {
             "answer":answer,
             "question asked":question,
             "context":[chunk["text"] for chunk in relevant_chunks],
@@ -146,3 +155,5 @@ class RAGPipeline:
                 for chunk in relevant_chunks
             ]
         }
+        logger.info("RAG response generated with %d source chunks", len(relevant_chunks))
+        return response

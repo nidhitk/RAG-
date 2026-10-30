@@ -5,9 +5,12 @@ from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.pdf_loader import load_pdf
 import json
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def ingest_document(file_path: str):
-
+    logger.info("Starting ingestion for %s", file_path)
 
     pages = load_pdf(file_path)
 
@@ -58,6 +61,7 @@ def ingest_document(file_path: str):
             ensure_ascii=False,
             indent=2
         )    
+    logger.info("Wrote %d chunk records to data/chunks.json", len(chunk_records))
 
 
     embedding_service = EmbeddingService()
@@ -78,7 +82,7 @@ def ingest_document(file_path: str):
         metadata=all_metadata
     )
 
-    print(f"Ingested {len(all_chunks)} chunks")
+    logger.info("Ingestion completed: %d chunks", len(all_chunks))
 
 
 def main():

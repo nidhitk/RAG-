@@ -3,11 +3,14 @@ import json
 from app.rag import RAGPipeline
 from dotenv import load_dotenv
 import os
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 load_dotenv()
 
 
 def evaluate():
-
+    logger.info("Starting retrieval evaluation")
     with open(
         "data/evaluation.json",
         "r",
@@ -56,24 +59,16 @@ def evaluate():
         if found:
 
             hits += 1
-
-            print("✅ HIT")
+            logger.info("HIT for evaluation case")
 
         else:
-
-            print("❌ MISS")
-
-        print(
-            test_case["question"]
-        )
+            logger.info("MISS for evaluation case")
 
     hit_rate = (
         hits / len(test_cases)
     )
 
-    print(
-        f"Hit Rate: {hit_rate:.2%}"
-    )
+    logger.info("Evaluation completed with hit rate: %.2f%%", hit_rate * 100)
 
 
 if __name__ == "__main__":
