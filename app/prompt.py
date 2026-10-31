@@ -1,8 +1,13 @@
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+
 def build_prompt(
     question: str,
     context: str
 ):
-
+    logger.debug("Building prompt with %d context characters", len(context))
     return f"""
 You are a helpful AI assistant.
 

@@ -4,12 +4,15 @@ from qdrant_client.models import (
     VectorParams,
     PointStruct
 )
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class QdrantStore:
 
     def __init__(self):
-
+        logger.info("Connecting to Qdrant at localhost:6333")
         self.client = QdrantClient(
             host="localhost",
             port=6333
@@ -18,7 +21,7 @@ class QdrantStore:
         self.collection_name = "documents"
 
     def create_collection(self):
-
+        logger.info("Recreating Qdrant collection '%s'", self.collection_name)
         self.client.recreate_collection(
             collection_name=self.collection_name,
 
@@ -29,7 +32,7 @@ class QdrantStore:
         )
 
     def insert_chunks(self, chunks, embeddings,metadata):
-
+        logger.info("Preparing %d chunks for Qdrant insertion", len(chunks))
         points = []
 
         for index, (chunk, embedding,chunk_metadata) in enumerate(
@@ -53,10 +56,11 @@ class QdrantStore:
             collection_name=self.collection_name,
 
             points=points
-        )    
+        )
+        logger.info("Inserted %d chunks into Qdrant", len(points))
 
     def search(self, query_embedding, limit=3):
-
+        logger.debug("Searching Qdrant collection '%s' with limit=%d", self.collection_name, limit)
         results = self.client.query_points(
             collection_name=self.collection_name,
             query=query_embedding,
@@ -64,6 +68,5 @@ class QdrantStore:
             with_payload=True
         )
 
+        logger.info("Qdrant search returned %d results", len(results.points))
         return results.points
-    
-    

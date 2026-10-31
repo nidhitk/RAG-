@@ -22,6 +22,9 @@
 
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def chunk_text(
@@ -29,7 +32,7 @@ def chunk_text(
     chunk_size: int = 500,
     overlap: int = 50
 ):
-
+    logger.debug("Chunking text of %d characters", len(text))
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=overlap,
@@ -43,4 +46,6 @@ def chunk_text(
         ]
     )
 
-    return splitter.split_text(text)
+    chunks = splitter.split_text(text)
+    logger.info("Created %d text chunks", len(chunks))
+    return chunks

@@ -1,11 +1,14 @@
 from rank_bm25 import BM25Okapi
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class BM25Search:
 
     def __init__(self, chunks: list):
-
         self.chunks = chunks
+        logger.info("Initializing BM25 index with %d chunks", len(chunks))
 
         tokenized_chunks = [
             chunk["text"].lower().split()
@@ -52,4 +55,5 @@ class BM25Search:
                 )
             })
 
+        logger.info("BM25 search returned %d results", len(results))
         return results
