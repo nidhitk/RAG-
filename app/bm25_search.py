@@ -15,9 +15,7 @@ class BM25Search:
             for chunk in chunks
         ]
 
-        self.bm25 = BM25Okapi(
-            tokenized_chunks
-        )
+        self.bm25 = BM25Okapi(tokenized_chunks) if tokenized_chunks else None
 
     def search(
         self,
@@ -28,6 +26,10 @@ class BM25Search:
         tokenized_query = (
             query.lower().split()
         )
+
+        if self.bm25 is None:
+            logger.warning("BM25 search skipped because the corpus is empty")
+            return []
 
         scores = self.bm25.get_scores(
             tokenized_query

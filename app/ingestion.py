@@ -4,7 +4,6 @@ from app.chunking import chunk_text
 from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.pdf_loader import load_pdf
-import json
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -35,33 +34,6 @@ def ingest_document(file_path: str):
                 }
             )
 
-
-
-    chunk_records = []
-
-    for chunk, metadata in zip(
-        all_chunks,
-        all_metadata
-    ):
-
-        chunk_records.append({
-            "text": chunk,
-            **metadata
-        })     
-
-    with open(
-        "data/chunks.json",
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            chunk_records,
-            file,
-            ensure_ascii=False,
-            indent=2
-        )    
-    logger.info("Wrote %d chunk records to data/chunks.json", len(chunk_records))
 
 
     embedding_service = EmbeddingService()
