@@ -137,6 +137,7 @@ class RAGPipeline:
         response = {
             "answer":answer,
             "question asked":question,
+            "rewritten_query":search_query,
             "context":[chunk["text"] for chunk in relevant_chunks],
             "sources":[
                 {
@@ -151,4 +152,4 @@ class RAGPipeline:
             ]
         }
         logger.info("RAG response generated with %d source chunks", len(relevant_chunks))
-        return response
+        return response 

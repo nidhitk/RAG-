@@ -6,10 +6,11 @@ The project ingests a PDF from the `documents` directory, splits it into page-aw
 
 ## Features
 
-- FastAPI API with a `/ask` endpoint
+- FastAPI API with `/ask` and persistent `/chat` endpoints
 - PDF document ingestion with page metadata
 - Sentence Transformer embeddings using `all-MiniLM-L6-v2`
 - Qdrant vector storage through Docker Compose
+- PostgreSQL chat-session and message storage through Supabase
 - Hybrid retrieval with Qdrant vector search and BM25 keyword search
 - Query rewriting for follow-up questions with conversation history
 - Cross-encoder reranking using `cross-encoder/ms-marco-MiniLM-L-6-v2`
@@ -23,6 +24,7 @@ The project ingests a PDF from the `documents` directory, splits it into page-aw
 +-- app/
 |   +-- bm25_search.py     # BM25 keyword retrieval over Qdrant-loaded chunks
 |   +-- chunking.py        # Splits document text into overlapping chunks
+|   +-- database.py        # PostgreSQL models and chat persistence
 |   +-- config.py          # Reserved for configuration
 |   +-- embeddings.py      # Generates sentence-transformer embeddings
 |   +-- evaluate.py        # Evaluates retrieval against test cases
@@ -77,6 +79,14 @@ Start Qdrant:
 ```powershell
 docker compose up -d
 ```
+
+Docker Compose starts Qdrant. Configure your Supabase PostgreSQL connection in `.env`, for example:
+
+```text
+postgresql+psycopg2://postgres.<project-ref>:<password>@<supabase-pooler-host>:6543/postgres
+```
+
+Set `DATABASE_URL` in `.env` using the connection string from Supabase Dashboard → Connect. Use the session pooler connection for a long-running API, or URL-encode special characters in the password.
 
 ## Ingest Documents
 
@@ -164,6 +174,29 @@ Example response shape:
   ]
 }
 ```
+
+## Persistent Chat
+
+Create a new chat session by omitting `session_id`:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/chat" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"message":"What are Docker volumes used for?"}'
+```
+
+The response includes a `session_id`. Send it with later messages to reuse persisted conversation history:
+
+```json
+{
+  "session_id": "session-uuid-from-the-first-response",
+  "message": "How does that provide persistence?"
+}
+```
+
+Retrieve the stored messages with `GET /chat/{session_id}`. Chat data remains available across API restarts because it is stored in PostgreSQL.
 
 ## Evaluate Retrieval
 

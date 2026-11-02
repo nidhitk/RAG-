@@ -7,6 +7,8 @@ groq
 pypdf
 langchain-text-splitters
 rank-bm25
+sqlalchemy
+psycopg2-binary
 
 # RAG evaluation
 ragas
