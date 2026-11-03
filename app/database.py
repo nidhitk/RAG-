@@ -99,3 +99,24 @@ def get_messages(session_id: str) -> list[dict]:
         }
         for message in messages
     ]
+
+
+def list_chat_sessions() -> list[dict]:
+    with Session(engine) as db:
+        sessions = db.scalars(
+            select(ChatSession).order_by(ChatSession.created_at.desc())
+        ).all()
+        result = []
+        for chat_session in sessions:
+            latest_message = db.scalars(
+                select(ChatMessage)
+                .where(ChatMessage.session_id == chat_session.id)
+                .order_by(ChatMessage.created_at.desc(), ChatMessage.id.desc())
+                .limit(1)
+            ).first()
+            result.append({
+                "session_id": chat_session.id,
+                "preview": latest_message.content if latest_message else "New chat",
+                "created_at": chat_session.created_at.isoformat(),
+            })
+        return result

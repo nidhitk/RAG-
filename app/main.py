@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.rag import RAGPipeline
@@ -7,6 +8,7 @@ from app.database import (
     create_chat_session,
     get_messages,
     init_db,
+    list_chat_sessions,
     save_message,
 )
 from dotenv import load_dotenv
@@ -22,6 +24,19 @@ load_dotenv()
 
 app = FastAPI(
     title="RAG Documentation Assistant"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -80,6 +95,16 @@ def chat(request: ChatRequest):
         "session_id": session_id,
         **result,
     }
+
+
+@app.post("/chat/session")
+def create_session():
+    return {"session_id": create_chat_session()}
+
+
+@app.get("/chat/sessions")
+def chat_sessions():
+    return {"sessions": list_chat_sessions()}
 
 
 @app.get("/chat/{session_id}")
