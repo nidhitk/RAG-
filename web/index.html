@@ -21,6 +21,12 @@
         <span aria-hidden="true">＋</span> New chat
       </button>
 
+      <label class="upload-button" for="document-input">
+        <span aria-hidden="true">↥</span> Upload document
+      </label>
+      <input id="document-input" type="file" accept="application/pdf,.pdf" hidden />
+      <p class="upload-status" id="upload-status"></p>
+
       <div class="previous-chats">
         <p class="section-label">PREVIOUS CHATS</p>
         <div id="chat-list" class="chat-list"></div>

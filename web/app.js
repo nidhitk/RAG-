@@ -8,6 +8,8 @@ const input = document.querySelector("#message-input");
 const sendButton = document.querySelector("#send-button");
 const newChatButton = document.querySelector("#new-chat-button");
 const chatList = document.querySelector("#chat-list");
+const documentInput = document.querySelector("#document-input");
+const uploadStatus = document.querySelector("#upload-status");
 const statusElement = document.querySelector("#connection-status");
 let activeSessionId = localStorage.getItem(SESSION_KEY);
 
@@ -137,6 +139,28 @@ async function createNewChat() {
   }
 }
 
+async function uploadDocument(file) {
+  uploadStatus.textContent = "Uploading and indexing…";
+  uploadStatus.classList.remove("error");
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/ingest`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Upload failed");
+    uploadStatus.textContent = `${data.filename} indexed (${data.chunks_indexed} chunks)`;
+  } catch (error) {
+    uploadStatus.textContent = error.message;
+    uploadStatus.classList.add("error");
+  } finally {
+    documentInput.value = "";
+  }
+}
+
 async function sendMessage(message) {
   const sessionId = activeSessionId;
   addMessage("user", message);
@@ -190,6 +214,11 @@ input.addEventListener("input", () => {
 
 newChatButton.addEventListener("click", () => {
   createNewChat();
+});
+
+documentInput.addEventListener("change", () => {
+  const [file] = documentInput.files;
+  if (file) uploadDocument(file);
 });
 
 document.querySelectorAll("[data-suggestion]").forEach((button) => {

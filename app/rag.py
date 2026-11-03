@@ -13,9 +13,9 @@ class RAGPipeline:
 
     def __init__(self, api_key):
         logger.info("Initializing RAG pipeline")
-        self.query_rewriter = QueryRewriter(
-            api_key=api_key
-        )
+        # self.query_rewriter = QueryRewriter(
+        #     api_key=api_key
+        # )
         self.query_rewriter=Opensource_QueryRewriter()
 
 
@@ -33,6 +33,12 @@ class RAGPipeline:
         chunks = self.qdrant_store.get_all_chunks()
         self.bm25 = BM25Search(chunks)
         logger.info("RAG pipeline initialized with %d indexed chunks", len(chunks))
+
+    def refresh_bm25(self):
+        """Refresh keyword retrieval after the Qdrant collection changes."""
+        chunks = self.qdrant_store.get_all_chunks()
+        self.bm25 = BM25Search(chunks)
+        logger.info("BM25 index refreshed with %d chunks", len(chunks))
 
 
 

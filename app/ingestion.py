@@ -55,6 +55,7 @@ def ingest_document(file_path: str):
     )
 
     logger.info("Ingestion completed: %d chunks", len(all_chunks))
+    return len(all_chunks)
 
 
 def main():
