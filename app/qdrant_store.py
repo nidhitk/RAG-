@@ -70,3 +70,41 @@ class QdrantStore:
 
         logger.info("Qdrant search returned %d results", len(results.points))
         return results.points
+
+    def get_all_chunks(self, batch_size=256):
+        """Read the complete BM25 corpus from Qdrant payloads.
+
+        Qdrant is the source of truth for indexed chunks. This keeps keyword
+        retrieval in sync with the vector index and avoids a second local
+        chunk store.
+        """
+        chunks = []
+        offset = None
+
+        while True:
+            points, offset = self.client.scroll(
+                collection_name=self.collection_name,
+                limit=batch_size,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+
+            for point in points:
+                payload = point.payload or {}
+                text = payload.get("text")
+                if not text:
+                    continue
+
+                chunks.append({
+                    "text": text,
+                    "source": payload.get("source"),
+                    "page": payload.get("page"),
+                    "chunk_index": payload.get("chunk_index"),
+                })
+
+            if offset is None:
+                break
+
+        logger.info("Loaded %d chunks from Qdrant for BM25", len(chunks))
+        return chunks

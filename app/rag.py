@@ -5,7 +5,6 @@ from app.llm import LLMService,Opensource_LLMService
 from app.reranker import Reranker
 from app.query_rewriter import QueryRewriter,Opensource_QueryRewriter
 from app.bm25_search import BM25Search
-import json
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -14,9 +13,9 @@ class RAGPipeline:
 
     def __init__(self, api_key):
         logger.info("Initializing RAG pipeline")
-        self.query_rewriter = QueryRewriter(
-            api_key=api_key
-        )
+        # self.query_rewriter = QueryRewriter(
+        #     api_key=api_key
+        # )
         self.query_rewriter=Opensource_QueryRewriter()
 
 
@@ -31,16 +30,15 @@ class RAGPipeline:
         #     api_key=api_key
         # )
         self.llm=Opensource_LLMService()
-        with open(
-            "data/chunks.json",
-            "r",
-            encoding="utf-8"
-        ) as file:
-
-            chunks = json.load(file)
-
+        chunks = self.qdrant_store.get_all_chunks()
         self.bm25 = BM25Search(chunks)
         logger.info("RAG pipeline initialized with %d indexed chunks", len(chunks))
+
+    def refresh_bm25(self):
+        """Refresh keyword retrieval after the Qdrant collection changes."""
+        chunks = self.qdrant_store.get_all_chunks()
+        self.bm25 = BM25Search(chunks)
+        logger.info("BM25 index refreshed with %d chunks", len(chunks))
 
 
 
@@ -89,22 +87,25 @@ class RAGPipeline:
                 })
             
 
-        combined_results = (
-        candidate_chunks
-        + keyword_results
-        )    
-
-
+        # Merge both retrieval paths by chunk identity. A chunk may be found
+        # by either search (or both), so keep both scores instead of allowing
+        # the later result to overwrite the earlier one.
         unique_results = {}
-        for chunk in combined_results:
-
+        for chunk in candidate_chunks + keyword_results:
             key = (
                 chunk["source"],
                 chunk["page"],
                 chunk["chunk_index"]
             )
 
-            unique_results[key] = chunk
+            if key not in unique_results:
+                unique_results[key] = dict(chunk)
+            else:
+                unique_results[key].update({
+                    name: value
+                    for name, value in chunk.items()
+                    if name.endswith("_score") and value is not None
+                })
 
         combined_results = list(
             unique_results.values()
@@ -117,7 +118,7 @@ class RAGPipeline:
         chunks=combined_results,
         top_k=3
         )
-
+        logger.info("relevent chunks :",relevant_chunks)
         # print("vectors :",candidate_chunks)
         # print("keyword search :",keyword_results)
 
@@ -142,6 +143,7 @@ class RAGPipeline:
         response = {
             "answer":answer,
             "question asked":question,
+            "rewritten_query":search_query,
             "context":[chunk["text"] for chunk in relevant_chunks],
             "sources":[
                 {
@@ -156,4 +158,4 @@ class RAGPipeline:
             ]
         }
         logger.info("RAG response generated with %d source chunks", len(relevant_chunks))
-        return response
+        return response 

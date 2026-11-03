@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG Assistant</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div>
+          <h1>RAG Assistant</h1>
+          <p>Documentation chat</p>
+        </div>
+      </div>
+
+      <button class="new-chat-button" id="new-chat-button" type="button">
+        <span aria-hidden="true">＋</span> New chat
+      </button>
+
+      <label class="upload-button" for="document-input">
+        <span aria-hidden="true">↥</span> Upload document
+      </label>
+      <input id="document-input" type="file" accept="application/pdf,.pdf" hidden />
+      <p class="upload-status" id="upload-status"></p>
+
+      <div class="previous-chats">
+        <p class="section-label">PREVIOUS CHATS</p>
+        <div id="chat-list" class="chat-list"></div>
+      </div>
+
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <span>Ask questions about your documents</span>
+      </div>
+    </aside>
+
+    <section class="chat-panel">
+      <header class="chat-header">
+        <div>
+          <p class="eyebrow">DOCUMENTATION ASSISTANT</p>
+          <h2>How can I help?</h2>
+        </div>
+        <div class="connection-status" id="connection-status">Ready</div>
+      </header>
+
+      <div class="messages" id="messages" aria-live="polite">
+        <div class="welcome-card" id="welcome-card">
+          <div class="welcome-icon">✦</div>
+          <h3>Welcome to your documentation assistant</h3>
+          <p>Ask a question and I’ll search your indexed documents for a useful answer.</p>
+          <div class="suggestions">
+            <button type="button" data-suggestion="What are Docker volumes used for?">What are Docker volumes used for?</button>
+            <button type="button" data-suggestion="How does the document search work?">How does the document search work?</button>
+          </div>
+        </div>
+      </div>
+
+      <form class="composer" id="chat-form">
+        <label class="sr-only" for="message-input">Message</label>
+        <textarea id="message-input" rows="1" placeholder="Ask about your documents..." autocomplete="off" required></textarea>
+        <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+          <span>Send</span>
+          <span aria-hidden="true">↑</span>
+        </button>
+      </form>
+      <p class="composer-hint">Enter to send · Shift + Enter for a new line</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

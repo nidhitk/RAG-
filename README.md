@@ -2,14 +2,15 @@
 
 A FastAPI-based Retrieval-Augmented Generation (RAG) service for answering questions from local documents.
 
-The project ingests a PDF from the `documents` directory, splits it into page-aware chunks, stores embeddings in Qdrant, writes chunk metadata to `data/chunks.json`, and answers questions with Groq using retrieved context. Retrieval combines vector search, BM25 keyword search, and cross-encoder reranking.
+The project ingests a PDF from the `documents` directory, splits it into page-aware chunks, stores embeddings and chunk metadata in Qdrant, and answers questions with Groq using retrieved context. Retrieval combines vector search, BM25 keyword search, and cross-encoder reranking. BM25 builds its in-memory index by reading chunk payloads from Qdrant.
 
 ## Features
 
-- FastAPI API with a `/ask` endpoint
+- FastAPI API with `/ask` and persistent `/chat` endpoints
 - PDF document ingestion with page metadata
 - Sentence Transformer embeddings using `all-MiniLM-L6-v2`
 - Qdrant vector storage through Docker Compose
+- PostgreSQL chat-session and message storage through Supabase
 - Hybrid retrieval with Qdrant vector search and BM25 keyword search
 - Query rewriting for follow-up questions with conversation history
 - Cross-encoder reranking using `cross-encoder/ms-marco-MiniLM-L-6-v2`
@@ -21,12 +22,13 @@ The project ingests a PDF from the `documents` directory, splits it into page-aw
 ```text
 .
 +-- app/
-|   +-- bm25_search.py     # BM25 keyword retrieval over saved chunks
+|   +-- bm25_search.py     # BM25 keyword retrieval over Qdrant-loaded chunks
 |   +-- chunking.py        # Splits document text into overlapping chunks
+|   +-- database.py        # PostgreSQL models and chat persistence
 |   +-- config.py          # Reserved for configuration
 |   +-- embeddings.py      # Generates sentence-transformer embeddings
 |   +-- evaluate.py        # Evaluates retrieval against test cases
-|   +-- ingestion.py       # Loads a PDF into Qdrant and data/chunks.json
+|   +-- ingestion.py       # Loads a PDF and indexes chunks in Qdrant
 |   +-- llm.py             # Calls the Groq API
 |   +-- main.py            # FastAPI application
 |   +-- pdf_loader.py      # Extracts text from PDF pages
@@ -36,7 +38,6 @@ The project ingests a PDF from the `documents` directory, splits it into page-aw
 |   +-- rag.py             # End-to-end RAG pipeline
 |   +-- reranker.py        # Cross-encoder reranking
 +-- data/
-|   +-- chunks.json        # Generated chunk text and metadata
 |   +-- evaluation.json    # Retrieval evaluation test cases
 +-- documents/
 |   +-- docker.txt         # Example text document
@@ -79,6 +80,14 @@ Start Qdrant:
 docker compose up -d
 ```
 
+Docker Compose starts Qdrant. Configure your Supabase PostgreSQL connection in `.env`, for example:
+
+```text
+postgresql+psycopg2://postgres.<project-ref>:<password>@<supabase-pooler-host>:6543/postgres
+```
+
+Set `DATABASE_URL` in `.env` using the connection string from Supabase Dashboard → Connect. Use the session pooler connection for a long-running API, or URL-encode special characters in the password.
+
 ## Ingest Documents
 
 Load the default PDF into Qdrant:
@@ -93,11 +102,7 @@ By default, this ingests:
 documents/sample.pdf
 ```
 
-Ingestion creates overlapping chunks, embeds them, recreates the Qdrant `documents` collection, and writes the same chunk records to:
-
-```text
-data/chunks.json
-```
+Ingestion creates overlapping chunks, embeds them, and recreates the Qdrant `documents` collection. Chunk text and metadata are stored as Qdrant payloads and are used by both vector and BM25 retrieval.
 
 To ingest a different PDF, update the path passed to `ingest_document()` in `app/ingestion.py`.
 
@@ -170,6 +175,29 @@ Example response shape:
 }
 ```
 
+## Persistent Chat
+
+Create a new chat session by omitting `session_id`:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/chat" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"message":"What are Docker volumes used for?"}'
+```
+
+The response includes a `session_id`. Send it with later messages to reuse persisted conversation history:
+
+```json
+{
+  "session_id": "session-uuid-from-the-first-response",
+  "message": "How does that provide persistence?"
+}
+```
+
+Retrieve the stored messages with `GET /chat/{session_id}`. Chat data remains available across API restarts because it is stored in PostgreSQL.
+
 ## Evaluate Retrieval
 
 Run the retrieval evaluation script:
@@ -185,6 +213,6 @@ The script reads `data/evaluation.json`, asks each test question, checks whether
 - Qdrant must be running before ingestion, querying, or evaluation.
 - Run ingestion after changing the source PDF.
 - The Qdrant `documents` collection is recreated during ingestion, so previous indexed chunks are replaced.
-- `data/chunks.json` must exist before starting the API because BM25 search loads it at startup.
+- The Qdrant `documents` collection must contain indexed chunks before starting the API because BM25 loads its corpus from Qdrant at startup.
 - The first run may download Sentence Transformer and cross-encoder model files.
 - Answers are generated from retrieved document context. If no relevant context is found, the prompt instructs the model to say it does not know based on the provided documents.
