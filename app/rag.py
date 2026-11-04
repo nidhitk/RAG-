@@ -43,11 +43,18 @@ class RAGPipeline:
 
 
 
-    def ask(self, question: str,history: list = []):
+    def ask(
+        self,
+        question: str,
+        history: list = [],
+        temperature: float = 0.0,
+        rerank_top_k: int = 3,
+    ):
         logger.info("Processing question with %d history messages", len(history))
         search_query = self.query_rewriter.rewrite(
              question=question,
-             history=history
+             history=history,
+             temperature=temperature,
         )
         logger.debug("Query rewrite completed")
 
@@ -116,7 +123,7 @@ class RAGPipeline:
         relevant_chunks = self.reranker.rerank(
         question=question,
         chunks=combined_results,
-        top_k=3
+        top_k=rerank_top_k
         )
         logger.info("relevent chunks :",relevant_chunks)
         # print("vectors :",candidate_chunks)
@@ -137,7 +144,8 @@ class RAGPipeline:
 
         # 6. Call LLM
         answer = self.llm.generate(
-            prompt
+            prompt,
+            temperature=temperature,
         )
 
         response = {

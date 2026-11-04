@@ -27,7 +27,7 @@ button { cursor: pointer; }
 
 .app-shell {
   display: grid;
-  grid-template-columns: 270px minmax(0, 850px);
+  grid-template-columns: 270px minmax(0, 850px) 245px;
   min-height: 100vh;
   max-width: 1250px;
   margin: 0 auto;
@@ -69,6 +69,15 @@ button { cursor: pointer; }
 .status-dot { flex: 0 0 auto; width: 7px; height: 7px; margin-top: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
 
 .chat-panel { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+.settings-panel { padding: 32px 20px; border-left: 1px solid var(--border); background: rgba(17, 19, 24, .48); }
+.settings-panel h3 { margin: 0 0 8px; font-size: 16px; }
+.settings-description { margin: 0 0 28px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.setting-label { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; color: #dce1e5; font-size: 12px; font-weight: 650; }
+.setting-label output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.range-input { width: 100%; margin: 13px 0 5px; accent-color: var(--accent); }
+.range-hints { display: flex; justify-content: space-between; color: #68717e; font-size: 10px; }
+.reset-settings { width: 100%; margin-top: 30px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 11px; }
+.reset-settings:hover { border-color: #587769; color: var(--accent); }
 .chat-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 34px 42px 25px; border-bottom: 1px solid var(--border); }
 .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 10px; font-weight: 750; letter-spacing: .16em; }
 .chat-header h2 { margin: 0; font-size: clamp(22px, 3vw, 30px); letter-spacing: -.04em; }
@@ -110,6 +119,7 @@ button { cursor: pointer; }
   .sidebar-note { display: none; }
   .new-chat-button { width: auto; }
   .chat-panel { min-height: calc(100vh - 124px); }
+  .settings-panel { border-top: 1px solid var(--border); border-left: 0; }
   .chat-header, .messages { padding-left: 18px; padding-right: 18px; }
   .composer { margin-left: 18px; margin-right: 18px; }
   .composer-hint { margin-left: 18px; margin-right: 18px; }

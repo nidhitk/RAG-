@@ -69,6 +69,28 @@
       </form>
       <p class="composer-hint">Enter to send · Shift + Enter for a new line</p>
     </section>
+
+    <aside class="settings-panel">
+      <p class="section-label">RESPONSE SETTINGS</p>
+      <h3>Fine-tune answers</h3>
+      <p class="settings-description">These settings apply to query rewriting, answer generation, and reranking for new messages.</p>
+
+      <label class="setting-label" for="temperature-input">
+        <span>AI temperature</span>
+        <output id="temperature-value">0.0</output>
+      </label>
+      <input class="range-input" id="temperature-input" type="range" min="0" max="2" step="0.1" value="0" />
+      <div class="range-hints"><span>Precise</span><span>Creative</span></div>
+
+      <label class="setting-label" for="rerank-input">
+        <span>Reranking top K</span>
+        <output id="rerank-value">3</output>
+      </label>
+      <input class="range-input" id="rerank-input" type="range" min="1" max="20" step="1" value="3" />
+      <div class="range-hints"><span>Focused</span><span>Broader context</span></div>
+
+      <button class="reset-settings" id="reset-settings" type="button">Reset settings</button>
+    </aside>
   </main>
 
   <script src="app.js"></script>

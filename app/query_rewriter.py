@@ -12,7 +12,7 @@ class QueryRewriter:
             api_key=api_key
         )
 
-    def rewrite(self, question: str,history: list):
+    def rewrite(self, question: str, history: list, temperature=0.0):
         logger.info("Rewriting query using %d history messages", len(history))
         conversation = ""
 
@@ -62,7 +62,7 @@ class QueryRewriter:
                     }
                 ],
 
-                temperature=0
+                temperature=temperature
             )
         )
 
@@ -96,7 +96,7 @@ class Opensource_QueryRewriter:
             temperature=0,
         )
 
-    def rewrite(self, question: str, history: list) -> str:
+    def rewrite(self, question: str, history: list, temperature=0.0) -> str:
         logger.info("Rewriting query locally using %d history messages", len(history))
         conversation = ""
 
@@ -124,9 +124,14 @@ Latest question:
 
 Rewritten search query:
 """
+        try:
+           response = self.client.model_copy(update={"temperature": temperature}).invoke(prompt)
 
-        response = self.client.invoke(prompt)
-
-        rewritten = response.content.strip()
-        logger.info("Local query rewrite completed")
-        return rewritten
+           rewritten = response.content.strip()
+           logger.info("Local query rewrite completed")
+           return rewritten
+        
+        except Exception:
+            logger.exception("Query rewriting failed")   
+            return question.strip()
+        

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.rag import RAGPipeline
 from app.ingestion import ingest_document
@@ -28,7 +28,6 @@ load_dotenv()
 app = FastAPI(
     title="RAG Documentation Assistant"
 )
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -47,18 +46,35 @@ class QuestionRequest(BaseModel):
 
     question: str
     history: list = []
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    rerank_top_k: int = Field(default=3, ge=1, le=20)
 
 
 class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    rerank_top_k: int = Field(default=3, ge=1, le=20)
 
 
 rag = RAGPipeline(
     api_key=os.environ.get("GROQ_API_KEY")
 )
-init_db()
+database_ready = False
+try:
+    init_db()
+    database_ready = True
+except Exception:
+    logger.exception("Database initialization failed; chat endpoints will return 503")
 logger.info("FastAPI application initialized")
+
+
+def require_database():
+    if not database_ready:
+        raise HTTPException(
+            status_code=503,
+            detail="Chat database is unavailable. Check the Supabase DATABASE_URL.",
+        )
 
 
 @app.post("/ask",description="for testing purpose")
@@ -68,16 +84,18 @@ def ask_question(
     logger.info("Received /ask request with %d history messages", len(request.history))
     result = rag.ask(
         question=request.question,
-        history=request.history
+        history=request.history,
+        temperature=request.temperature,
+        rerank_top_k=request.rerank_top_k,
     )
 
     logger.info("Completed /ask request")
     return result
 
-
 @app.post("/chat")
 def chat(request: ChatRequest):
     """Chat with persisted conversation history."""
+    require_database()
     session_id = request.session_id
 
     if session_id is None:
@@ -91,6 +109,8 @@ def chat(request: ChatRequest):
     result = rag.ask(
         question=request.message,
         history=history,
+        temperature=request.temperature,
+        rerank_top_k=request.rerank_top_k,
     )
     save_message(session_id, "assistant", result["answer"])
 
@@ -98,15 +118,14 @@ def chat(request: ChatRequest):
         "session_id": session_id,
         **result,
     }
-
-
 @app.post("/chat/session")
 def create_session():
+    require_database()
     return {"session_id": create_chat_session()}
-
 
 @app.get("/chat/sessions")
 def chat_sessions():
+    require_database()
     return {"sessions": list_chat_sessions()}
 
 
@@ -138,10 +157,9 @@ async def ingest(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Document ingestion failed: {error}")
     finally:
         saved_path.unlink(missing_ok=True)
-
-
 @app.get("/chat/{session_id}")
 def chat_history(session_id: str):
+    require_database()
     if not chat_session_exists(session_id):
         raise HTTPException(status_code=404, detail="Chat session not found")
 

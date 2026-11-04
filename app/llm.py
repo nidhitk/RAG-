@@ -13,7 +13,7 @@ class LLMService:
             api_key=api_key
         )
 
-    def generate(self, prompt):
+    def generate(self, prompt, temperature=0.0):
         logger.info("Generating response with Groq LLM")
         response = self.client.chat.completions.create(
 
@@ -24,7 +24,8 @@ class LLMService:
                     "role": "user",
                     "content": prompt
                 }
-            ]
+            ],
+            temperature=temperature,
         )
 
         answer = response.choices[0].message.content
@@ -45,9 +46,9 @@ class Opensource_LLMService:
             temperature=0,
         )
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, temperature=0.0) -> str:
         logger.info("Generating response with local Ollama LLM")
-        response = self.client.invoke(prompt)
+        response = self.client.model_copy(update={"temperature": temperature}).invoke(prompt)
         answer = response.content
         logger.info("Local LLM generated a %d-character response", len(answer))
         return answer

@@ -11,7 +11,34 @@ const chatList = document.querySelector("#chat-list");
 const documentInput = document.querySelector("#document-input");
 const uploadStatus = document.querySelector("#upload-status");
 const statusElement = document.querySelector("#connection-status");
+const temperatureInput = document.querySelector("#temperature-input");
+const temperatureValue = document.querySelector("#temperature-value");
+const rerankInput = document.querySelector("#rerank-input");
+const rerankValue = document.querySelector("#rerank-value");
+const resetSettingsButton = document.querySelector("#reset-settings");
+const SETTINGS_KEY = "rag_assistant_settings";
 let activeSessionId = localStorage.getItem(SESSION_KEY);
+
+function loadSettings() {
+  try {
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    temperatureInput.value = settings.temperature ?? 0;
+    rerankInput.value = settings.rerankTopK ?? 3;
+  } catch (_) {
+    temperatureInput.value = 0;
+    rerankInput.value = 3;
+  }
+  updateSettingsLabels();
+}
+
+function updateSettingsLabels() {
+  temperatureValue.textContent = Number(temperatureInput.value).toFixed(1);
+  rerankValue.textContent = rerankInput.value;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+    temperature: Number(temperatureInput.value),
+    rerankTopK: Number(rerankInput.value),
+  }));
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -171,7 +198,12 @@ async function sendMessage(message) {
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, ...(sessionId ? { session_id: sessionId } : {}) }),
+      body: JSON.stringify({
+        message,
+        temperature: Number(temperatureInput.value),
+        rerank_top_k: Number(rerankInput.value),
+        ...(sessionId ? { session_id: sessionId } : {}),
+      }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || "Chat request failed");
@@ -221,6 +253,14 @@ documentInput.addEventListener("change", () => {
   if (file) uploadDocument(file);
 });
 
+temperatureInput.addEventListener("input", updateSettingsLabels);
+rerankInput.addEventListener("input", updateSettingsLabels);
+resetSettingsButton.addEventListener("click", () => {
+  temperatureInput.value = 0;
+  rerankInput.value = 3;
+  updateSettingsLabels();
+});
+
 document.querySelectorAll("[data-suggestion]").forEach((button) => {
   button.addEventListener("click", () => {
     input.value = button.dataset.suggestion;
@@ -230,3 +270,4 @@ document.querySelectorAll("[data-suggestion]").forEach((button) => {
 
 renderChatList();
 loadHistory();
+loadSettings();
