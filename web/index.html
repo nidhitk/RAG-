@@ -73,7 +73,18 @@
     <aside class="settings-panel">
       <p class="section-label">RESPONSE SETTINGS</p>
       <h3>Fine-tune answers</h3>
-      <p class="settings-description">These settings apply to query rewriting, answer generation, and reranking for new messages.</p>
+      <p class="settings-description">Choose how documents are retrieved for each new message.</p>
+
+      <div class="setting-toggle-row">
+        <div>
+          <label class="setting-label setting-label-inline" for="hybrid-input">Hybrid retrieval + reranking</label>
+          <p class="setting-help" id="retrieval-mode-help">Qdrant + BM25, then rerank the results</p>
+        </div>
+        <label class="switch" aria-label="Enable hybrid retrieval with reranking">
+          <input id="hybrid-input" type="checkbox" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
 
       <label class="setting-label" for="temperature-input">
         <span>AI temperature</span>
@@ -83,7 +94,7 @@
       <div class="range-hints"><span>Precise</span><span>Creative</span></div>
 
       <label class="setting-label" for="rerank-input">
-        <span>Reranking top K</span>
+        <span id="rerank-label">Reranking top K</span>
         <output id="rerank-value">3</output>
       </label>
       <input class="range-input" id="rerank-input" type="range" min="1" max="20" step="1" value="3" />

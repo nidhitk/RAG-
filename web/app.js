@@ -15,6 +15,9 @@ const temperatureInput = document.querySelector("#temperature-input");
 const temperatureValue = document.querySelector("#temperature-value");
 const rerankInput = document.querySelector("#rerank-input");
 const rerankValue = document.querySelector("#rerank-value");
+const rerankLabel = document.querySelector("#rerank-label");
+const hybridInput = document.querySelector("#hybrid-input");
+const retrievalModeHelp = document.querySelector("#retrieval-mode-help");
 const resetSettingsButton = document.querySelector("#reset-settings");
 const SETTINGS_KEY = "rag_assistant_settings";
 let activeSessionId = localStorage.getItem(SESSION_KEY);
@@ -24,9 +27,11 @@ function loadSettings() {
     const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
     temperatureInput.value = settings.temperature ?? 0;
     rerankInput.value = settings.rerankTopK ?? 3;
+    hybridInput.checked = settings.hybridRetrieval ?? true;
   } catch (_) {
     temperatureInput.value = 0;
     rerankInput.value = 3;
+    hybridInput.checked = true;
   }
   updateSettingsLabels();
 }
@@ -34,9 +39,14 @@ function loadSettings() {
 function updateSettingsLabels() {
   temperatureValue.textContent = Number(temperatureInput.value).toFixed(1);
   rerankValue.textContent = rerankInput.value;
+  rerankLabel.textContent = hybridInput.checked ? "Reranking top K" : "Qdrant results top K";
+  retrievalModeHelp.textContent = hybridInput.checked
+    ? "Qdrant + BM25, then rerank the results"
+    : "Qdrant vector search only; no BM25 or reranking";
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({
     temperature: Number(temperatureInput.value),
     rerankTopK: Number(rerankInput.value),
+    hybridRetrieval: hybridInput.checked,
   }));
 }
 
@@ -49,14 +59,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function addMessage(role, content, sources = []) {
+function addMessage(role, content, sources = [], retrievalMode = null) {
   welcomeCard?.remove();
 
   const row = document.createElement("div");
   row.className = `message-row ${role}`;
   const label = role === "user" ? "You" : "R";
+  const modeLabel = retrievalMode === "qdrant_only"
+    ? "Qdrant only"
+    : retrievalMode === "hybrid_reranked"
+      ? "Hybrid + reranked"
+      : "";
   const sourceMarkup = sources.length
-    ? `<details class="sources"><summary>${sources.length} source${sources.length === 1 ? "" : "s"}</summary>${sources.map((source) => `
+    ? `<details class="sources"><summary>${sources.length} source${sources.length === 1 ? "" : "s"}${modeLabel ? ` · ${modeLabel}` : ""}</summary>${sources.map((source) => `
         <div class="source-item"><strong>${escapeHtml(source.source || "Document")}</strong>${source.page ? ` · page ${escapeHtml(source.page)}` : ""}<br>${escapeHtml(source.data || "")}</div>`).join("")}</details>`
     : "";
 
@@ -202,6 +217,7 @@ async function sendMessage(message) {
         message,
         temperature: Number(temperatureInput.value),
         rerank_top_k: Number(rerankInput.value),
+        hybrid_retrieval: hybridInput.checked,
         ...(sessionId ? { session_id: sessionId } : {}),
       }),
     });
@@ -211,7 +227,7 @@ async function sendMessage(message) {
     activeSessionId = data.session_id;
     localStorage.setItem(SESSION_KEY, activeSessionId);
     typing.remove();
-    addMessage("assistant", data.answer, data.sources || []);
+    addMessage("assistant", data.answer, data.sources || [], data.retrieval_mode);
     renderChatList();
   } catch (error) {
     typing.remove();
@@ -255,9 +271,11 @@ documentInput.addEventListener("change", () => {
 
 temperatureInput.addEventListener("input", updateSettingsLabels);
 rerankInput.addEventListener("input", updateSettingsLabels);
+hybridInput.addEventListener("change", updateSettingsLabels);
 resetSettingsButton.addEventListener("click", () => {
   temperatureInput.value = 0;
   rerankInput.value = 3;
+  hybridInput.checked = true;
   updateSettingsLabels();
 });
 

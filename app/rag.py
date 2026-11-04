@@ -49,6 +49,7 @@ class RAGPipeline:
         history: list = [],
         temperature: float = 0.0,
         rerank_top_k: int = 3,
+        hybrid_retrieval: bool = True,
     ):
         logger.info("Processing question with %d history messages", len(history))
         search_query = self.query_rewriter.rewrite(
@@ -71,10 +72,12 @@ class RAGPipeline:
             limit=20
         )
 
-        keyword_results = self.bm25.search(
-        query=search_query,
-        top_k=20
-        )
+        keyword_results = []
+        if hybrid_retrieval:
+            keyword_results = self.bm25.search(
+                query=search_query,
+                top_k=20,
+            )
 
         # 3. Filter low-relevance results
         # relevant_chunks = []
@@ -94,9 +97,9 @@ class RAGPipeline:
                 })
             
 
-        # Merge both retrieval paths by chunk identity. A chunk may be found
-        # by either search (or both), so keep both scores instead of allowing
-        # the later result to overwrite the earlier one.
+        # Merge both retrieval paths by chunk identity when hybrid retrieval
+        # is enabled. In vector-only mode, preserve Qdrant's ranking directly
+        # so the frontend can compare it with the reranked hybrid result.
         unique_results = {}
         for chunk in candidate_chunks + keyword_results:
             key = (
@@ -114,18 +117,20 @@ class RAGPipeline:
                     if name.endswith("_score") and value is not None
                 })
 
-        combined_results = list(
-            unique_results.values()
-        )
+        combined_results = list(unique_results.values())
         logger.info("Combined %d unique candidate chunks", len(combined_results))
 
-            
-        relevant_chunks = self.reranker.rerank(
-        question=question,
-        chunks=combined_results,
-        top_k=rerank_top_k
-        )
-        logger.info("relevent chunks :",relevant_chunks)
+        if hybrid_retrieval:
+            relevant_chunks = self.reranker.rerank(
+                question=question,
+                chunks=combined_results,
+                top_k=rerank_top_k,
+            )
+            retrieval_mode = "hybrid_reranked"
+        else:
+            relevant_chunks = candidate_chunks[:rerank_top_k]
+            retrieval_mode = "qdrant_only"
+        logger.info("Selected %d chunks using %s retrieval", len(relevant_chunks), retrieval_mode)
         # print("vectors :",candidate_chunks)
         # print("keyword search :",keyword_results)
 
@@ -152,6 +157,7 @@ class RAGPipeline:
             "answer":answer,
             "question asked":question,
             "rewritten_query":search_query,
+            "retrieval_mode": retrieval_mode,
             "context":[chunk["text"] for chunk in relevant_chunks],
             "sources":[
                 {

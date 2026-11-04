@@ -74,6 +74,15 @@ button { cursor: pointer; }
 .settings-description { margin: 0 0 28px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .setting-label { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; color: #dce1e5; font-size: 12px; font-weight: 650; }
 .setting-label output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.setting-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
+.setting-label-inline { margin-top: 0; }
+.setting-help { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.switch { position: relative; display: inline-block; flex: 0 0 auto; width: 38px; height: 22px; }
+.switch input { width: 0; height: 0; opacity: 0; }
+.slider { position: absolute; inset: 0; border-radius: 20px; background: #303640; transition: .2s; cursor: pointer; }
+.slider::before { position: absolute; content: ""; width: 16px; height: 16px; left: 3px; top: 3px; border-radius: 50%; background: #aeb6c0; transition: .2s; }
+.switch input:checked + .slider { background: var(--accent-dark); box-shadow: inset 0 0 0 1px #496c5e; }
+.switch input:checked + .slider::before { transform: translateX(16px); background: var(--accent); }
 .range-input { width: 100%; margin: 13px 0 5px; accent-color: var(--accent); }
 .range-hints { display: flex; justify-content: space-between; color: #68717e; font-size: 10px; }
 .reset-settings { width: 100%; margin-top: 30px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 11px; }

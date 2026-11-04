@@ -48,6 +48,7 @@ class QuestionRequest(BaseModel):
     history: list = []
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     rerank_top_k: int = Field(default=3, ge=1, le=20)
+    hybrid_retrieval: bool = True
 
 
 class ChatRequest(BaseModel):
@@ -55,6 +56,7 @@ class ChatRequest(BaseModel):
     session_id: str | None = None
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     rerank_top_k: int = Field(default=3, ge=1, le=20)
+    hybrid_retrieval: bool = True
 
 
 rag = RAGPipeline(
@@ -87,6 +89,7 @@ def ask_question(
         history=request.history,
         temperature=request.temperature,
         rerank_top_k=request.rerank_top_k,
+        hybrid_retrieval=request.hybrid_retrieval,
     )
 
     logger.info("Completed /ask request")
@@ -111,6 +114,7 @@ def chat(request: ChatRequest):
         history=history,
         temperature=request.temperature,
         rerank_top_k=request.rerank_top_k,
+        hybrid_retrieval=request.hybrid_retrieval,
     )
     save_message(session_id, "assistant", result["answer"])
 
