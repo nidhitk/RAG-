@@ -1,0 +1,3 @@
+retrieval_strategy,questions,faithfulness,answer_relevancy,context_precision,context_recall
+hybrid,20,0.8999,0.9308,1.0000,1.0000
+vector_only,20,0.9075,0.9492849580795415,0.9291666666039582,0.95

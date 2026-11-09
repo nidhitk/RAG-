@@ -1,9 +1,9 @@
 from app.embeddings import EmbeddingService
 from app.qdrant_store import QdrantStore
 from app.prompt import build_prompt
-from app.llm import LLMService,Opensource_LLMService
+from app.llm import LLMService
 from app.reranker import Reranker
-from app.query_rewriter import QueryRewriter,Opensource_QueryRewriter
+from app.query_rewriter import QueryRewriter
 from app.bm25_search import BM25Search
 from app.logging_config import get_logger
 
@@ -13,10 +13,7 @@ class RAGPipeline:
 
     def __init__(self, api_key):
         logger.info("Initializing RAG pipeline")
-        # self.query_rewriter = QueryRewriter(
-        #     api_key=api_key
-        # )
-        self.query_rewriter=Opensource_QueryRewriter()
+        self.query_rewriter = QueryRewriter(api_key=api_key)
 
 
         self.embedding_service = (
@@ -26,10 +23,7 @@ class RAGPipeline:
 
         self.qdrant_store = QdrantStore()
 
-        # self.llm = LLMService(
-        #     api_key=api_key
-        # )
-        self.llm=Opensource_LLMService()
+        self.llm = LLMService(api_key=api_key)
         chunks = self.qdrant_store.get_all_chunks()
         self.bm25 = BM25Search(chunks)
         logger.info("RAG pipeline initialized with %d indexed chunks", len(chunks))

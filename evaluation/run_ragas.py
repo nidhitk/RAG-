@@ -8,7 +8,7 @@ import pandas as pd
 from datasets import Dataset
 from dotenv import load_dotenv
 
-from evaluation.ollama_llm import evaluator_llm
+from evaluation.groq_llm import evaluator_llm
 
 # RAGAS 0.4.3 imports the retired LangChain Community Vertex AI module even
 # when Vertex AI is not used.  RAGAS only references this class when checking
@@ -34,8 +34,6 @@ from ragas.metrics import (
     context_recall,
 )
 
-from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from app.rag import RAGPipeline
@@ -54,7 +52,7 @@ def load_test_cases():
         return json.load(file)
 
 
-def build_dataset(pipeline, test_cases):
+def build_dataset(pipeline, test_cases, hybrid_retrieval):
     questions = []
     answers = []
     contexts = []
@@ -65,14 +63,21 @@ def build_dataset(pipeline, test_cases):
         expected_answer = case["ground_truth"]
 
         # Run your actual RAG pipeline.
-        result = pipeline.ask(question)
+        result = pipeline.ask(
+            question,
+            hybrid_retrieval=hybrid_retrieval,
+        )
 
         questions.append(question)
         answers.append(result["answer"])
         contexts.append(result["context"])
         ground_truths.append(expected_answer)
 
-        logger.info("Evaluated question; retrieved %d chunks", len(result["context"]))
+        logger.info(
+            "Evaluated question with hybrid_retrieval=%s; retrieved %d chunks",
+            hybrid_retrieval,
+            len(result["context"]),
+        )
 
     return Dataset.from_dict({
         "question": questions,
@@ -94,7 +99,12 @@ def main():
     pipeline = RAGPipeline(api_key=api_key)
     test_cases = load_test_cases()
 
-    dataset = build_dataset(pipeline, test_cases)
+    # Use the same questions and evaluation settings for both runs so the
+    # retrieval strategies can be compared fairly.
+    datasets_by_mode = {
+         "hybrid": build_dataset(pipeline, test_cases, hybrid_retrieval=True),
+         "vector_only": build_dataset(pipeline, test_cases, hybrid_retrieval=False)
+    }
 
     # Example evaluator: use a compatible Groq model.
 
@@ -120,30 +130,47 @@ def main():
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    result = evaluate(
-        dataset=dataset,
-        metrics=[
-            faithfulness,
-            answer_relevancy,
-            context_precision,
-            context_recall,
-        ],
-        llm=ragas_evaluator,
-        embeddings=evaluator_embeddings,
-        # Keep Groq calls within its tokens-per-minute quota.  RAGAS retries
-        # transient 429 responses using exponential backoff.
-        run_config=RunConfig(max_workers=1, timeout=300, max_retries=10),
-    )
-
     output_dir = ROOT / "evaluation" / "results"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    df = result.to_pandas()
-    output_path = output_dir / "ragas_results.csv"
-    df.to_csv(output_path, index=False)
+    comparison_rows = []
+    for mode, dataset in datasets_by_mode.items():
+        result = evaluate(
+            dataset=dataset,
+            metrics=[
+                faithfulness,
+                answer_relevancy,
+                context_precision,
+                context_recall,
+            ],
+            llm=ragas_evaluator,
+            embeddings=evaluator_embeddings,
+            # Keep Groq calls within its tokens-per-minute quota. RAGAS
+            # retries transient 429 responses using exponential backoff.
+            run_config=RunConfig(max_workers=1, timeout=300, max_retries=10),
+        )
 
-    logger.info("RAGAS evaluation completed; results saved to %s", output_path)
-    logger.info("RAGAS scores: %s", result)
+        df = result.to_pandas()
+        df.insert(0, "retrieval_strategy", mode)
+        output_path = output_dir / f"ragas_results_{mode}.csv"
+        df.to_csv(output_path, index=False)
+
+        metric_columns = [
+            "faithfulness",
+            "answer_relevancy",
+            "context_precision",
+            "context_recall",
+        ]
+        comparison_rows.append({
+            "retrieval_strategy": mode,
+            "questions": len(df),
+            **{metric: df[metric].mean() for metric in metric_columns if metric in df},
+        })
+        logger.info("RAGAS %s scores: %s", mode, result)
+
+    comparison_path = output_dir / "ragas_comparison.csv"
+    pd.DataFrame(comparison_rows).to_csv(comparison_path, index=False)
+    logger.info("RAGAS comparison saved to %s", comparison_path)
 
 
 if __name__ == "__main__":

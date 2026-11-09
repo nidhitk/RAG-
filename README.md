@@ -208,6 +208,17 @@ python -m app.evaluate
 
 The script reads `data/evaluation.json`, asks each test question, checks whether the expected source and page appear in the returned sources, and prints the final hit rate.
 
+To compare RAGAS scores for hybrid and vector-only retrieval, run:
+
+```powershell
+python -m evaluation.run_ragas
+```
+
+This runs every case with `hybrid_retrieval=True` and `False`, then writes
+`evaluation/results/ragas_results_hybrid.csv`,
+`evaluation/results/ragas_results_vector_only.csv`, and the aggregate
+comparison in `evaluation/results/ragas_comparison.csv`.
+
 ## Notes
 
 - Qdrant must be running before ingestion, querying, or evaluation.

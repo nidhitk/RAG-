@@ -1,5 +1,4 @@
 from groq import Groq
-from langchain_ollama import ChatOllama
 import os
 from app.logging_config import get_logger
 
@@ -32,23 +31,3 @@ class LLMService:
         logger.info("Groq LLM generated a %d-character response", len(answer))
         return answer
 
-
-class Opensource_LLMService:
-
-    def __init__(self):
-        logger.info("Initializing local Ollama LLM client")
-        self.client = ChatOllama(
-            model=os.getenv(
-                "OPEN_MODEL_FOR_GENERATION",
-                "qwen2.5:3b"
-            ),
-            base_url="http://localhost:11434",
-            temperature=0,
-        )
-
-    def generate(self, prompt: str, temperature=0.0) -> str:
-        logger.info("Generating response with local Ollama LLM")
-        response = self.client.model_copy(update={"temperature": temperature}).invoke(prompt)
-        answer = response.content
-        logger.info("Local LLM generated a %d-character response", len(answer))
-        return answer
